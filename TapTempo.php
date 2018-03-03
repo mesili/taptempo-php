@@ -4,15 +4,21 @@ stream_set_blocking(STDIN, false);
 
 class TapTempo {
 
-    private static $history=[];
+    private static $taps = [];
     private static $interval = 60;
     private static $lastInterval;
     private static $intervals;
     private static $bpm;
 
-    public static function tap(bool $key) {
-        array_push(self::$history, microtime(true));
+    public static function tap() {
+        array_push(self::$taps, microtime(true));
         self::getBpm() && self::printResult();
+    }
+
+    public static function greet() {
+        echo "Welcome to this PHP implementation of TapTempo.\n\n";
+        echo "Press <Enter> to start.\n";
+        echo "Press <Ctrl-C> to quit.\n";
     }
 
     private static function printResult(){
@@ -21,35 +27,41 @@ class TapTempo {
     }
 
     private static function getBpm():bool {
-        $c = count(self::$history);
+        $c = count(self::$taps);
 
         if ($c === 1) {
             echo "First Tap !";
             return false;
+        }elseif ($c > 5) {
+            array_shift(self::$taps);
         }
-        if ($c > 5) array_shift(self::$history);
 
         self::lastInterval();
 
         array_map(function(float $e){
             array_push(self::$intervals, $e - self::$lastInterval);
-        }, self::$history);
+        }, self::$taps);
 
         $mul = self::$interval / array_sum(self::$intervals);
-        self::$bpm = abs( count(self::$intervals) * $mul * 2); 
+        self::$bpm = abs(count(self::$intervals) * $mul * 2); 
 
         return true;
     }
 
     private static function lastInterval() {
-        end(self::$history);
-        self::$lastInterval = current(self::$history);
-        reset(self::$history);
+        end(self::$taps);
+        self::$lastInterval = current(self::$taps);
+        reset(self::$taps);
         self::$intervals = [];
     }
 
 }
 
+
+TapTempo::greet();
+
 while (true) {
-    if (fgetc(STDIN) !== false) TapTempo::tap(fgetc(STDIN));
+    if (fgetc(STDIN) !== false) TapTempo::tap();
 }
+
+
