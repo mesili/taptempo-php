@@ -1,6 +1,5 @@
 <?php
 
-stream_set_blocking(STDIN, false);
 
 class TapTempo {
 
@@ -58,9 +57,14 @@ class TapTempo {
 }
 
 
+system("stty -icanon -echo min 0 time 0");
+
 TapTempo::greet();
 
-while (true) {
+$std = [STDIN];
+$in = $out = NULL;
+
+while (stream_select($std , $in , $out, NULL )) {
     if (fgetc(STDIN) !== false) TapTempo::tap();
 }
 
